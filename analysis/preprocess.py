@@ -14,9 +14,51 @@ import numpy as np
 import pandas as pd
 import regex as re
 
+
+cwd = os.path.dirname(os.path.abspath(__file__))
+root = os.path.split(cwd)[0]
+rawdir = os.path.join(root, "data/raw")
+tmpdir = os.path.join(root, "data/tmp")
+
+# =============================================================================
+# List of files for each year. Make sure these are up to date!
+# =============================================================================
+YEARS = [2020, 2021]  
+DOCKET_FILES = ["2020_added_bail.csv",
+               "2021_added_bail.csv"]
+COURT_FILES = ["court_summary.csv",
+              "2021-jan_feb_march_court.csv"]
+
 # =============================================================================
 # Functions to be called outside of this file
 # =============================================================================
+def import_all_data():
+    """Given separate docket and court summary CSV files for each year,
+    import, clean, and merge the data into a single dataframe for each year.
+    Return a list of dataframes.
+    """
+    
+    print("Importing the following files:")
+    for i, year in enumerate(YEARS):
+        print(f"{year}:")
+        print(f"\tdocket:\t\t{DOCKET_FILES[i]}")
+        print(f"\tcourt summary:\t{COURT_FILES[i]}")    
+    
+    df_list = []
+    for i, year in enumerate(YEARS):
+        print(f"\nImporting {year} data...")
+        # Set file paths
+        outfile = f"processed_data_{year}.csv"
+        docketpath = os.path.join(rawdir, DOCKET_FILES[i])
+        courtpath = os.path.join(rawdir, COURT_FILES[i])
+        outpath = os.path.join(tmpdir, outfile)
+
+        df = merge_and_clean_data(docketpath, courtpath,
+                                  outPath=outpath, verbose=False)
+        df_list.append(df)
+        
+    return df_list
+
 def merge_and_clean_data(docketPath, courtPath, outPath='full_data.csv',
                          overwrite=True, verbose=False):
     """Preprocess raw data: merge, clean, and add columns.
@@ -208,11 +250,4 @@ def print_report(df, verbose):
 # Main
 # =============================================================================
 if __name__=="__main__":
-    cwd = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.split(cwd)[0]
-    rawdir = os.path.join(root, "data/raw")
-    
-    fdocket = os.path.join(rawdir, "docket_test.csv")
-    fcourt = os.path.join(rawdir, "court_summary_test.csv")
-    
-    merge_and_clean_data(fdocket, fcourt, verbose=True)
+    import_all_data()
